@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<PhoronixTestSuite>
+    <Suite>
+        <ID>apache-nginx-benchmark</ID>
+        <Title>Apache vs Nginx Benchmark</Title>
+        <Description>Benchmarking Apache and Nginx with the same metrics including CPU and Memory usage.</Description>
+        <Version>1.0.1</Version>
+        <Maintainer>Seu Nome</Maintainer>
+        <Options>
+            <Option>
+                <ID>requests_per_second</ID>
+                <Title>Requests Per Second</Title>
+                <Type>integer</Type>
+                <Default>1000</Default>
+            </Option>
+            <Option>
+                <ID>test_duration</ID>
+                <Title>Test Duration</Title>
+                <Type>integer</Type>
+                <Default>60</Default>
+            </Option>
+        </Options>
+    </Suite>
+    <Test>
+        <ID>apache-benchmark</ID>
+        <Title>Apache Benchmark</Title>
+        <Type>System</Type>
+        <TestType>pts-custom</TestType>
+        <Description>Benchmarking Apache HTTP server including CPU and Memory usage.</Description>
+        <Command>
+            <![CDATA[
+            sudo systemctl start apache2; \
+            mpstat -P ALL 1 $(test_duration) > mpstat_apache.log & \
+            free -m -s 1 -c $(test_duration) > free_apache.log & \
+            /usr/bin/ab -n $(requests_per_second) -c 10 http://localhost/; \
+            sudo systemctl stop apache2; \
+            pkill mpstat; pkill free
+            ]]>
+        </Command>
+        <Requires>
+            <Program>ab</Program>
+            <Program>mpstat</Program>
+            <Program>free</Program>
+        </Requires>
+        <Constraints>
+            <RequiredCommand>ab</RequiredCommand>
+            <RequiredCommand>mpstat</RequiredCommand>
+            <RequiredCommand>free</RequiredCommand>
+            <RequiredCommand>sudo</RequiredCommand>
+            <RequiredCommand>systemctl</RequiredCommand>
+        </Constraints>
+        <ResultParser type="line-value">
+            <Pattern>Requests per second:</Pattern>
+            <Unit>req/s</Unit>
+        </ResultParser>
+        <ResultParser type="file-content">
+            <Files>
+                <File>mpstat_apache.log</File>
+                <File>free_apache.log</File>
+            </Files>
+        </ResultParser>
+    </Test>
+    <Test>
+        <ID>nginx-benchmark</ID>
+        <Title>Nginx Benchmark</Title>
+        <Type>System</Type>
+        <TestType>pts-custom</TestType>
+        <Description>Benchmarking Nginx HTTP server including CPU and Memory usage.</Description>
+        <Command>
+            <![CDATA[
+            sudo systemctl start nginx; \
+            mpstat -P ALL 1 $(test_duration) > mpstat_nginx.log & \
+            free -m -s 1 -c $(test_duration) > free_nginx.log & \
+            /usr/bin/ab -n $(requests_per_second) -c 10 http://localhost/; \
+            sudo systemctl stop nginx; \
+            pkill mpstat; pkill free
+            ]]>
+        </Command>
+        <Requires>
+            <Program>ab</Program>
+            <Program>mpstat</Program>
+            <Program>free</Program>
+        </Requires>
+        <Constraints>
+            <RequiredCommand>ab</RequiredCommand>
+            <RequiredCommand>mpstat</RequiredCommand>
+            <RequiredCommand>free</RequiredCommand>
+            <RequiredCommand>sudo</RequiredCommand>
+            <RequiredCommand>systemctl</RequiredCommand>
+        </Constraints>
+        <ResultParser type="line-value">
+            <Pattern>Requests per second:</Pattern>
+            <Unit>req/s</Unit>
+        </ResultParser>
+        <ResultParser type="file-content">
+            <Files>
+                <File>mpstat_nginx.log</File>
+                <File>free_nginx.log</File>
+            </Files>
+        </ResultParser>
+    </Test>
+</PhoronixTestSuite>
